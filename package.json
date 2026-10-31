@@ -1,0 +1,18 @@
+{
+  "name": "roofing-crm",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lightweight CRM for Placer Roofing - leads, customers, tasks, and documents, with a REST API for integration with other apps.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "init-db": "node scripts/init-db.js",
+    "seed-demo": "node scripts/seed-demo.js",
+    "create-api-key": "node scripts/create-api-key.js"
+  },
+  "dependencies": {}
+}
