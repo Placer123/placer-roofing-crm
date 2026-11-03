@@ -1,5 +1,27 @@
 # Placer Roofing CRM — V1
 
+## Running on Replit
+
+Click **Run** to start the configured workflow on port 5000.
+Use Node.js 22.5 or newer; no npm packages need installing.
+
+**The SQLite instructions below describe the original version. The current
+code uses PostgreSQL**, through the vendored driver in `src/vendor/postgres-js`.
+It requires `DATABASE_URL` (provided by the Replit database) and a stable
+`SESSION_SECRET` in Secrets. Never commit either value.
+
+The server initializes the database schema and default dropdowns on startup;
+no manual database initialization or demo seed is needed. On a fresh database,
+open the preview and create the first manager account on the setup page.
+
+To start manually in the Replit shell:
+
+```bash
+PORT=5000 npm run dev
+```
+
+See `replit.md` for environment and verification notes.
+
 A lightweight, dependency-free CRM covering the 4 core modules: **Customers/Leads,
 Follow-up Tasks, Documents (linked, not stored), and the Sales Pipeline**.
 
