@@ -23,3 +23,10 @@
   load, and unauthenticated `/api/v1/customers` requests are rejected.
 - Do not bypass authentication or create a permanent account for verification.
   Signed-in CRM screens need separate authenticated testing.
+
+## After task merges
+
+- `scripts/post-merge.sh` checks the Node.js version and JavaScript syntax.
+  No dependency installation or build is needed for the current stack.
+- The platform then reconciles workflows and restarts the running app.
+- The setup script does not seed data or run database-changing tests.
