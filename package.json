@@ -10,6 +10,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
+    "test:authorization": "node --test test/authorization.test.js",
     "init-db": "node scripts/init-db.js",
     "seed-demo": "node scripts/seed-demo.js",
     "create-api-key": "node scripts/create-api-key.js"
