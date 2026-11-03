@@ -514,6 +514,9 @@ export function registerUiRoutes(router) {
   });
 
   router.post('/customers/:id/stage', async (req, res, params) => {
+    const customer = await Customers.getCustomer(params.id);
+    if (!customer) return sendHtml(res, 404, '<h1>Not found</h1>');
+    if (!canAccessOwner(customer.assigned_to)) return denyAccess(res);
     const body = await readFormBody(req);
     if (STAGES.some((s) => s.id === body.stage)) {
       await Customers.updateCustomer(params.id, { stage: body.stage });
@@ -832,11 +835,13 @@ export function registerUiRoutes(router) {
       return sendJson(res, 400, { error: 'Invalid JSON body' });
     }
     if (!body.due_date) return sendJson(res, 422, { error: 'due_date is required' });
+    const creatingUser = getCurrentUser();
     const itb = await Itbs.createItb({
       project_name: body.project_name || 'New ITB (from email)',
       due_date: body.due_date,
       status: 'New',
-      market: body.market || '',
+      assigned_to: creatingUser?.role === 'rep' ? creatingUser.rep : (body.assigned_to || ''),
+      market: body.market || creatingUser?.market || '',
     });
     sendJson(res, 201, { id: itb.id });
   });
@@ -949,6 +954,9 @@ export function registerUiRoutes(router) {
       return sendJson(res, 400, { error: 'Invalid JSON body' });
     }
     if (!body.due_date) return sendJson(res, 422, { error: 'due_date is required' });
+    const existing = await Itbs.getItb(params.id);
+    if (!existing) return sendJson(res, 404, { error: 'Not found' });
+    if (!canAccessOwner(existing.assigned_to)) return denyAccess(res);
     const itb = await Itbs.rescheduleItb(params.id, body.due_date);
     if (!itb) return sendJson(res, 404, { error: 'Not found' });
     sendJson(res, 200, { item: itb });
@@ -958,6 +966,7 @@ export function registerUiRoutes(router) {
   router.post('/bid-calendar/itbs/:id/attachments', async (req, res, params, query) => {
     const itb = await Itbs.getItb(params.id);
     if (!itb) return sendJson(res, 404, { error: 'Not found' });
+    if (!canAccessOwner(itb.assigned_to)) return denyAccess(res);
     let buffer;
     try {
       buffer = await readRawBody(req);
@@ -982,6 +991,9 @@ export function registerUiRoutes(router) {
   router.get('/bid-calendar/attachments/:id/download', async (req, res, params) => {
     const attachment = await ItbAttachments.getAttachment(params.id);
     if (!attachment) return sendHtml(res, 404, '<h1>Not found</h1>');
+    const itb = await Itbs.getItb(attachment.itb_id);
+    if (!itb) return sendHtml(res, 404, '<h1>Not found</h1>');
+    if (!canAccessOwner(itb.assigned_to)) return denyAccess(res);
     const filePath = path.join(ItbAttachments.ATTACHMENTS_DIR, attachment.stored_filename);
     if (!fs.existsSync(filePath)) return sendHtml(res, 404, '<h1>File missing on disk</h1>');
     const content = fs.readFileSync(filePath);
@@ -994,6 +1006,13 @@ export function registerUiRoutes(router) {
   });
 
   router.post('/bid-calendar/itbs/:id/attachments/:attId/delete', async (req, res, params) => {
+    const attachment = await ItbAttachments.getAttachment(params.attId);
+    if (!attachment || String(attachment.itb_id) !== String(params.id)) {
+      return sendHtml(res, 404, '<h1>Not found</h1>');
+    }
+    const itb = await Itbs.getItb(params.id);
+    if (!itb) return sendHtml(res, 404, '<h1>Not found</h1>');
+    if (!canAccessOwner(itb.assigned_to)) return denyAccess(res);
     await ItbAttachments.deleteAttachment(params.attId);
     sendRedirect(res, `/bid-calendar/itbs/${params.id}/edit?flash=${encodeURIComponent('Attachment removed.')}`);
   });
